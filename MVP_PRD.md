@@ -100,7 +100,7 @@ Calculate and track:
 1. Scan all securities daily (historical simulation)
 2. Identify stocks meeting pattern criteria (e.g., Trend Template + VCP)
 3. Generate trade recommendations with entry/exit rules
-4. Log recommendations to `ideas.log`
+4. Log recommendations to `ideas.csv` alongwith date and time of logging
 5. Track simulated performance over time
 6. Generate performance metrics
 
@@ -145,7 +145,7 @@ Generate comprehensive analytics:
 ### 4. Ideas Log & Alerts
 
 #### 4.1 Pattern Detection Logging
-When a pattern is detected, append to `ideas.log` with:
+When a pattern is detected, append to `ideas.csv` with:
 - **Symbol:** Ticker/Symbol
 - **Date:** Detection timestamp
 - **Pattern Type:** Which pattern(s) detected
@@ -158,13 +158,13 @@ When a pattern is detected, append to `ideas.log` with:
 
 #### 4.2 Manual Confirmation
 - Automated detection with manual review for refinement
-- User can review ideas.log to validate or dismiss suggestions
+- User can review ideas.csv to validate or dismiss suggestions
 
 ### 5. Reporting & Visualization
 
 #### 5.1 Export Formats
 - **Primary:** CSV files for pattern detections and backtest results
-- **Ideas Log:** Text/CSV format with structured data
+- **Ideas:** CSV format with structured data
 
 #### 5.2 Charting (Future)
 - Interactive charting: Out of scope for MVP
@@ -185,7 +185,7 @@ When a pattern is detected, append to `ideas.log` with:
 1. User specifies date range for historical scan
 2. System scans all securities for selected date
 3. System identifies pattern matches
-4. Results logged to `ideas.log` with full details
+4. Results logged to `ideas.csv` with full details
 5. User reviews log for investment ideas
 
 #### Workflow 2: Backtest Strategy Validation
@@ -209,7 +209,7 @@ When a pattern is detected, append to `ideas.log` with:
 
 #### Performance
 - **Batch Processing:** Overnight processing acceptable
-- **Throughput:** Scan 10,000 securities within reasonable time (hours, not days)
+- **Throughput:** Scan 10,000 securities within reasonable time (minutes, not hours)
 - **Data Volume:** Handle 5+ million rows efficiently
 
 #### Scalability
@@ -224,7 +224,7 @@ When a pattern is detected, append to `ideas.log` with:
 #### Usability
 - Clear, intuitive web interface
 - Understandable CSV outputs
-- Well-structured ideas.log for easy parsing
+- Well-structured ideas.csv for easy parsing
 
 ### Technology Stack
 - **Language:** Open to recommendation (Python highly suitable given data science libraries)
@@ -283,13 +283,13 @@ The following features are explicitly **NOT** part of the MVP:
 ### Qualitative Metrics
 1. **Insight Quality:** Does the system identify historically profitable setups?
 2. **SEPA Validation:** Does backtesting confirm or refute Minervini's methodology?
-3. **Usability:** Can user effectively use ideas.log to make investment decisions?
+3. **Usability:** Can user effectively use ideas.csv to make investment decisions?
 
 ### Acceptance Criteria
 - ✅ System successfully loads 20 years of daily data for Indian and US markets
 - ✅ Pattern detection engine identifies all specified patterns with acceptable accuracy
 - ✅ Backtesting engine simulates trades and calculates all specified metrics
-- ✅ Ideas.log provides actionable investment ideas with clear rationale
+- ✅ Ideas.csv provides actionable investment ideas with clear rationale
 - ✅ Performance metrics demonstrate whether SEPA methodology outperforms market
 
 ---
@@ -300,7 +300,7 @@ The following features are explicitly **NOT** part of the MVP:
 - Zerodha API provides sufficient historical data and rate limits
 - Yahoo Finance data quality is acceptable for backtesting
 - User has basic understanding of technical analysis and Minervini's methodology
-- User can interpret CSV outputs and ideas.log entries
+- User can interpret CSV outputs and ideas.csv entries
 
 ### Dependencies
 - Zerodha API access and credentials

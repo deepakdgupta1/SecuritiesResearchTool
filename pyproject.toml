@@ -1,0 +1,77 @@
+[tool.poetry]
+name = "my-project"
+version = "0.1.0"
+description = "Project adhering to 2025 Appendix A Standards"
+authors = ["Engineering Team"]
+readme = "README.md"
+packages = [{include = "my_project", from = "src"}] # Enforcing src layout 
+
+[tool.poetry.dependencies]
+python = "^3.11" # [cite: 49]
+fastapi = "^0.109" # 
+pydantic-settings = "^2.0" # 
+httpx = "^0.26" # 
+structlog = "^24.1" # 
+sqlmodel = "^0.0.14" # 
+# arq = "^0.25" # Uncomment if task queue needed 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0" # [cite: 34]
+pytest-cov = "^4.1" # [cite: 34]
+mypy = "^1.8" # [cite: 28]
+ruff = "^0.3" # [cite: 26]
+black = "^24.0" # [cite: 23]
+hypothesis = "^6.98" # [cite: 36]
+syrupy = "^4.6" # [cite: 37]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# ------------------------------------------------------------------
+# Style & Formatting (Black) - 
+# ------------------------------------------------------------------
+[tool.black]
+line-length = 100 
+target-version = ['py311']
+include = '\.pyi?$'
+
+# ------------------------------------------------------------------
+# Linting (Ruff) - [cite: 26]
+# ------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Mandatory: Select "ALL" with minimal ignores [cite: 26]
+select = ["ALL"]
+# Minimal ignores (e.g., specific conflicts with formatter)
+ignore = [
+    "D203", # One-blank-line-before-class (conflicts with D211)
+    "D213", # Multi-line-summary-second-line (conflicts with D212)
+    "COM812", # Trailing comma missing (conflicts with formatter)
+    "ISC001", # Implicit string concatenation (conflicts with formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["my_project"]
+
+# ------------------------------------------------------------------
+# Static Type Checking (Mypy) - [cite: 28, 30]
+# ------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+disallow_any_generics = true
+disallow_untyped_defs = true
+warn_return_any = true
+files = ["src"]
+
+# ------------------------------------------------------------------
+# Testing (Pytest) - [cite: 34, 35]
+# ------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=src --cov-report=term-missing --cov-fail-under=95"
+testpaths = ["tests"]
