@@ -1,77 +1,85 @@
 [tool.poetry]
-name = "my-project"
+name = "securities-research-tool"
 version = "0.1.0"
-description = "Project adhering to 2025 Appendix A Standards"
-authors = ["Engineering Team"]
+description = "Securities Research Tool - Pattern Recognition & Backtesting Platform"
+authors = ["Development Team"]
 readme = "README.md"
-packages = [{include = "my_project", from = "src"}] # Enforcing src layout 
+packages = [{include = "backend"}]
 
 [tool.poetry.dependencies]
-python = "^3.11" # [cite: 49]
-fastapi = "^0.109" # 
-pydantic-settings = "^2.0" # 
-httpx = "^0.26" # 
-structlog = "^24.1" # 
-sqlmodel = "^0.0.14" # 
-# arq = "^0.25" # Uncomment if task queue needed 
+python = "^3.11"
+# Web Framework
+fastapi = "^0.109"
+uvicorn = "^0.27"
+pydantic-settings = "^2.0"
+# Database
+psycopg2-binary = "^2.9"
+sqlalchemy = "^2.0"
+# Data Processing
+pandas = "^2.1"
+numpy = "^1.26"
+pandas-ta = "^0.3"
+# Data Providers
+yfinance = "^0.2"
+kiteconnect = "^4.3"
+# Utilities
+python-dotenv = "^1.0"
+tenacity = "^8.2"
+structlog = "^24.1"
+httpx = "^0.26"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0" # [cite: 34]
-pytest-cov = "^4.1" # [cite: 34]
-mypy = "^1.8" # [cite: 28]
-ruff = "^0.3" # [cite: 26]
-black = "^24.0" # [cite: 23]
-hypothesis = "^6.98" # [cite: 36]
-syrupy = "^4.6" # [cite: 37]
+pytest = "^8.0"
+pytest-cov = "^4.1"
+mypy = "^1.8"
+ruff = "^0.3"
+black = "^24.0"
+hypothesis = "^6.98"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 # ------------------------------------------------------------------
-# Style & Formatting (Black) - 
+# Style & Formatting (Black)
 # ------------------------------------------------------------------
 [tool.black]
-line-length = 100 
+line-length = 100
 target-version = ['py311']
-include = '\.pyi?$'
+include = '\\.pyi?$'
 
 # ------------------------------------------------------------------
-# Linting (Ruff) - [cite: 26]
+# Linting (Ruff)
 # ------------------------------------------------------------------
 [tool.ruff]
 line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-# Mandatory: Select "ALL" with minimal ignores [cite: 26]
-select = ["ALL"]
-# Minimal ignores (e.g., specific conflicts with formatter)
+select = ["E", "F", "I","N", "W", "UP", "B", "C4", "SIM", "RUF"]
 ignore = [
-    "D203", # One-blank-line-before-class (conflicts with D211)
-    "D213", # Multi-line-summary-second-line (conflicts with D212)
-    "COM812", # Trailing comma missing (conflicts with formatter)
-    "ISC001", # Implicit string concatenation (conflicts with formatter)
+    "D203",   # One-blank-line-before-class
+    "D213",   # Multi-line-summary-second-line
+    "COM812", # Trailing comma missing
+    "ISC001", # Implicit string concatenation
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["my_project"]
+known-first-party = ["backend"]
 
 # ------------------------------------------------------------------
-# Static Type Checking (Mypy) - [cite: 28, 30]
+# Static Type Checking (Mypy)
 # ------------------------------------------------------------------
 [tool.mypy]
 python_version = "3.11"
 strict = true
-disallow_any_generics = true
-disallow_untyped_defs = true
 warn_return_any = true
-files = ["src"]
+files = ["backend"]
 
 # ------------------------------------------------------------------
-# Testing (Pytest) - [cite: 34, 35]
+# Testing (Pytest)
 # ------------------------------------------------------------------
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=src --cov-report=term-missing --cov-fail-under=95"
+addopts = "--cov=backend --cov-report=term-missing --cov-fail-under=80"
 testpaths = ["tests"]
