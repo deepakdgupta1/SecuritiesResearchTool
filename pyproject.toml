@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "backend"}]
 
 [tool.poetry.dependencies]
-python = ">=3.12,<4.0"
+python = ">=3.12,<4.0" # 3.12.3
 # Web Framework
 fastapi = "^0.109"
 uvicorn = "^0.27"
@@ -16,9 +16,9 @@ pydantic-settings = "^2.0"
 psycopg2-binary = "^2.9"
 sqlalchemy = "^2.0"
 # Data Processing
-pandas = ">=2.1,<2.4"
-numpy = ">=2.2.6,<2.4"
-pandas-ta = ">=0.3"
+pandas = ">=2.1,<2.4" # 2.3.3
+numpy = ">=2.2.6,<2.4" # 2.2.6
+pandas-ta = ">=0.3" # 0.4.71b0
 # Data Providers
 yfinance = "^0.2"
 kiteconnect = "^5.0.1"
