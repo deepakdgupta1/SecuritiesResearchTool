@@ -12,7 +12,18 @@ import pandas as pd
 from kiteconnect import KiteConnect
 
 from backend.core.config import settings
-from backend.core.constants import ZERODHA_RATE_LIMIT
+from backend.core.constants import (
+    ZERODHA_RATE_LIMIT,
+    MARKET_IN,
+    EXCHANGE_NSE,
+    EXCHANGE_BSE,
+    COL_OPEN,
+    COL_HIGH,
+    COL_LOW,
+    COL_CLOSE,
+    COL_VOLUME,
+    COL_DATE,
+)
 from backend.data_providers.base import (
     BaseDataProvider,
     DataProviderError,
@@ -113,7 +124,7 @@ class ZerodhaProvider(BaseDataProvider):
             self.logger.error(f"Error fetching instruments: {e}")
             raise DataProviderError(f"Failed to fetch instruments: {e}")
     
-    def get_instrument_token(self, symbol: str, exchange: str = "NSE") -> Optional[int]:
+    def get_instrument_token(self, symbol: str, exchange: str = EXCHANGE_NSE) -> Optional[int]:
         """Get instrument token for a symbol.
         
         Args:
@@ -176,7 +187,7 @@ class ZerodhaProvider(BaseDataProvider):
         """
         self._enforce_rate_limit()
         
-        exchange = kwargs.get('exchange', 'NSE')
+        exchange = kwargs.get('exchange', EXCHANGE_NSE)
         interval = kwargs.get('interval', 'day')
         continuous = kwargs.get('continuous', False)
         
@@ -209,12 +220,12 @@ class ZerodhaProvider(BaseDataProvider):
             
             # Rename columns to match our schema
             df = df.rename(columns={
-                'date': 'date',
-                'open': 'open',
-                'high': 'high',
-                'low': 'low',
-                'close': 'close',
-                'volume': 'volume',
+                'date': COL_DATE,
+                'open': COL_OPEN,
+                'high': COL_HIGH,
+                'low': COL_LOW,
+                'close': COL_CLOSE,
+                'volume': COL_VOLUME,
             })
             
             # Add adjusted_close (same as close for Indian markets)
@@ -222,10 +233,10 @@ class ZerodhaProvider(BaseDataProvider):
             df['adjusted_close'] = df['close']
             
             # Convert date to date object (remove time component)
-            df['date'] = pd.to_datetime(df['date']).dt.date
+            df[COL_DATE] = pd.to_datetime(df[COL_DATE]).dt.date
             
             # Select required columns
-            columns = ['date', 'open', 'high', 'low', 'close', 'volume', 'adjusted_close']
+            columns = [COL_DATE, COL_OPEN, COL_HIGH, COL_LOW, COL_CLOSE, COL_VOLUME, 'adjusted_close']
             df = df[columns]
             
             # Validate data
@@ -256,7 +267,7 @@ class ZerodhaProvider(BaseDataProvider):
         
         # Filter for NSE equities
         nse_equities = instruments[
-            (instruments['exchange'] == 'NSE') &
+            (instruments['exchange'] == EXCHANGE_NSE) &
             (instruments['instrument_type'] == 'EQ')
         ]
         
@@ -266,8 +277,8 @@ class ZerodhaProvider(BaseDataProvider):
             symbols.append({
                 'symbol': row['tradingsymbol'],
                 'name': row['name'],
-                'exchange': 'NSE',
-                'market': 'IN',
+                'exchange': EXCHANGE_NSE,
+                'market': MARKET_IN,
                 'sector': row.get('segment', 'Unknown'),
             })
         
@@ -284,7 +295,7 @@ class ZerodhaProvider(BaseDataProvider):
         
         # Filter for BSE equities
         bse_equities = instruments[
-            (instruments['exchange'] == 'BSE') &
+            (instruments['exchange'] == EXCHANGE_BSE) &
             (instruments['instrument_type'] == 'EQ')
         ]
         
@@ -294,8 +305,8 @@ class ZerodhaProvider(BaseDataProvider):
             symbols.append({
                 'symbol': row['tradingsymbol'],
                 'name': row['name'],
-                'exchange': 'BSE',
-                'market': 'IN',
+                'exchange': EXCHANGE_BSE,
+                'market': MARKET_IN,
                 'sector': row.get('segment', 'Unknown'),
             })
         
@@ -347,7 +358,7 @@ class ZerodhaProvider(BaseDataProvider):
             >>> provider.validate_symbol('RELIANCE', exchange='NSE')  # True
             >>> provider.validate_symbol('INVALID', exchange='NSE')  # False
         """
-        exchange = kwargs.get('exchange', 'NSE')
+        exchange = kwargs.get('exchange', EXCHANGE_NSE)
         
         try:
             token = self.get_instrument_token(symbol, exchange)

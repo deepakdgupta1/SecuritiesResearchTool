@@ -11,7 +11,22 @@ from typing import Dict, List, Optional
 import pandas as pd
 import yfinance as yf
 
-from backend.core.constants import YAHOO_RATE_LIMIT
+from backend.core.constants import (
+    YAHOO_RATE_LIMIT,
+    MARKET_US,
+    EXCHANGE_NYSE,
+    EXCHANGE_NASDAQ,
+    EXCHANGE_UNKNOWN,
+    INTERVAL_DAILY,
+    URL_SP500_WIKIPEDIA,
+    COL_OPEN,
+    COL_HIGH,
+    COL_LOW,
+    COL_CLOSE,
+    COL_VOLUME,
+    COL_ADJ_CLOSE,
+    COL_DATE,
+)
 from backend.data_providers.base import (
     BaseDataProvider,
     DataProviderError,
@@ -86,7 +101,7 @@ class YahooFinanceProvider(BaseDataProvider):
             ticker = yf.Ticker(symbol)
             
             # Fetch historical data
-            interval = kwargs.get('interval', '1d')
+            interval = kwargs.get('interval', INTERVAL_DAILY)
             df = ticker.history(
                 start=start_date,
                 end=end_date,
@@ -99,23 +114,23 @@ class YahooFinanceProvider(BaseDataProvider):
             
             # Rename columns to match our schema
             df = df.rename(columns={
-                'Open': 'open',
-                'High': 'high',
-                'Low': 'low',
-                'Close': 'close',
-                'Volume': 'volume',
-                'Adj Close': 'adjusted_close',
+                'Open': COL_OPEN,
+                'High': COL_HIGH,
+                'Low': COL_LOW,
+                'Close': COL_CLOSE,
+                'Volume': COL_VOLUME,
+                'Adj Close': COL_ADJ_CLOSE,
             })
             
             # Reset index to have date as column
             df = df.reset_index()
-            df = df.rename(columns={'Date': 'date'})
+            df = df.rename(columns={'Date': COL_DATE})
             
             # Convert date to date object (remove time component)
-            df['date'] = pd.to_datetime(df['date']).dt.date
+            df[COL_DATE] = pd.to_datetime(df[COL_DATE]).dt.date
             
             # Select required columns
-            columns = ['date', 'open', 'high', 'low', 'close', 'volume', 'adjusted_close']
+            columns = [COL_DATE, COL_OPEN, COL_HIGH, COL_LOW, COL_CLOSE, COL_VOLUME, COL_ADJ_CLOSE]
             df = df[columns]
             
             # Validate data
@@ -149,7 +164,7 @@ class YahooFinanceProvider(BaseDataProvider):
             self.logger.info("Fetching S&P 500 constituents from Wikipedia")
             
             # Fetch S&P 500 table from Wikipedia
-            url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+            url = URL_SP500_WIKIPEDIA
             tables = pd.read_html(url)
             sp500_table = tables[0]
             
@@ -159,8 +174,8 @@ class YahooFinanceProvider(BaseDataProvider):
                 symbols.append({
                     'symbol': row['Symbol'],
                     'name': row['Security'],
-                    'exchange': 'NYSE' if 'NYSE' in str(row.get('Exchange', '')) else 'NASDAQ',
-                    'market': 'US',
+                    'exchange': EXCHANGE_NYSE if 'NYSE' in str(row.get('Exchange', '')) else EXCHANGE_NASDAQ,
+                    'market': MARKET_US,
                     'sector': row.get('GICS Sector', 'Unknown'),
                 })
             
@@ -198,8 +213,8 @@ class YahooFinanceProvider(BaseDataProvider):
                 {
                     'symbol': symbol,
                     'name': symbol,  # Name will be fetched separately if needed
-                    'exchange': 'UNKNOWN',
-                    'market': 'US',
+                    'exchange': EXCHANGE_UNKNOWN,
+                    'market': MARKET_US,
                     'sector': 'Unknown',
                 }
                 for symbol in custom_symbols
@@ -267,8 +282,8 @@ class YahooFinanceProvider(BaseDataProvider):
             return {
                 'symbol': symbol,
                 'name': info.get('longName', symbol),
-                'exchange': info.get('exchange', 'UNKNOWN'),
-                'market': 'US',
+                'exchange': info.get('exchange', EXCHANGE_UNKNOWN),
+                'market': MARKET_US,
                 'sector': info.get('sector', 'Unknown'),
             }
             

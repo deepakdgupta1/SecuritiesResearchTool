@@ -418,3 +418,54 @@ API_TIMEOUT_SECONDS = 30
 
 DATA_INGESTION_RETRY_DELAY_SECONDS = 300
 """Wait 5 minutes before retrying failed data ingestion."""
+
+# ============================================================================
+# MARKET & EXCHANGE CONSTANTS
+# ============================================================================
+
+MARKET_US = "US"
+"""United States Market Code."""
+
+MARKET_IN = "IN"
+"""Indian Market Code."""
+
+EXCHANGE_NSE = "NSE"
+"""National Stock Exchange of India."""
+
+EXCHANGE_BSE = "BSE"
+"""Bombay Stock Exchange."""
+
+EXCHANGE_NYSE = "NYSE"
+"""New York Stock Exchange."""
+
+EXCHANGE_NASDAQ = "NASDAQ"
+"""Nasdaq Stock Market."""
+
+EXCHANGE_UNKNOWN = "UNKNOWN"
+"""Unknown Exchange."""
+
+# ============================================================================
+# DATA PROVIDER CONFIGURATION
+# ============================================================================
+
+INTERVAL_DAILY = "1d"
+"""Daily data interval for Yahoo Finance."""
+
+INTERVAL_5MIN = "5m"
+"""5-minute data interval."""
+
+BATCH_SIZE_INSERT = 100
+"""Batch size for database insertions."""
+
+URL_SP500_WIKIPEDIA = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+"""URL for fetching S&P 500 constituents."""
+
+# Column Mapping
+COL_OPEN = "open"
+COL_HIGH = "high"
+COL_LOW = "low"
+COL_CLOSE = "close"
+COL_VOLUME = "volume"
+COL_ADJ_CLOSE = "adjusted_close"
+COL_DATE = "date"
+

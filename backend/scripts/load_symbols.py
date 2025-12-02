@@ -27,6 +27,12 @@ sys.path.insert(0, str(project_root))
 from sqlalchemy.exc import IntegrityError
 
 from backend.core.config import settings
+from backend.core.constants import (
+    MARKET_IN,
+    MARKET_US,
+    EXCHANGE_NSE,
+    BATCH_SIZE_INSERT,
+)
 from backend.core.database import get_session
 from backend.models.db_models import Symbol
 from backend.data_providers.yahoo_client import YahooFinanceProvider
@@ -56,7 +62,7 @@ def load_indian_symbols() -> int:
         
         # Fetch NSE symbols
         logger.info("Fetching NSE instrument list...")
-        symbols_data = provider.get_symbols_list(exchange='NSE')
+        symbols_data = provider.get_symbols_list(exchange=EXCHANGE_NSE)
         
         logger.info(f"Found {len(symbols_data)} NSE symbols")
         
@@ -70,7 +76,7 @@ def load_indian_symbols() -> int:
                     # Check if symbol already exists
                     existing = session.query(Symbol).filter_by(
                         symbol=symbol_info['symbol'],
-                        exchange='NSE'
+                        exchange=EXCHANGE_NSE
                     ).first()
                     
                     if existing:
@@ -84,8 +90,8 @@ def load_indian_symbols() -> int:
                         symbol = Symbol(
                             symbol=symbol_info['symbol'],
                             name=symbol_info['name'],
-                            exchange='NSE',
-                            market='IN',
+                            exchange=EXCHANGE_NSE,
+                            market=MARKET_IN,
                             sector=symbol_info['sector'],
                             active=True,
                         )
@@ -93,7 +99,7 @@ def load_indian_symbols() -> int:
                         loaded_count += 1
                     
                     # Commit every 100 symbols
-                    if (loaded_count + skipped_count) % 100 == 0:
+                    if (loaded_count + skipped_count) % BATCH_SIZE_INSERT == 0:
                         session.commit()
                         logger.info(f"Progress: {loaded_count + skipped_count} symbols processed")
                 
@@ -159,7 +165,7 @@ def load_us_symbols() -> int:
                             symbol=symbol_info['symbol'],
                             name=symbol_info['name'],
                             exchange=symbol_info['exchange'],
-                            market='US',
+                            market=MARKET_US,
                             sector=symbol_info['sector'],
                             active=True,
                         )
@@ -167,7 +173,7 @@ def load_us_symbols() -> int:
                         loaded_count += 1
                     
                     # Commit every 100 symbols
-                    if (loaded_count + skipped_count) % 100 == 0:
+                    if (loaded_count + skipped_count) % BATCH_SIZE_INSERT == 0:
                         session.commit()
                         logger.info(f"Progress: {loaded_count + skipped_count} symbols processed")
                 
@@ -196,8 +202,8 @@ def verify_symbols() -> None:
     
     with get_session() as session:
         # Count by market
-        indian_count = session.query(Symbol).filter_by(market='IN', active=True).count()
-        us_count = session.query(Symbol).filter_by(market='US', active=True).count()
+        indian_count = session.query(Symbol).filter_by(market=MARKET_IN, active=True).count()
+        us_count = session.query(Symbol).filter_by(market=MARKET_US, active=True).count()
         total_count = session.query(Symbol).filter_by(active=True).count()
         
         logger.info(f"Indian Market (NSE): {indian_count} symbols")
@@ -206,12 +212,12 @@ def verify_symbols() -> None:
         
         # Sample some symbols
         logger.info("\nSample Indian Symbols:")
-        indian_samples = session.query(Symbol).filter_by(market='IN').limit(5).all()
+        indian_samples = session.query(Symbol).filter_by(market=MARKET_IN).limit(5).all()
         for sym in indian_samples:
             logger.info(f"  {sym.symbol} - {sym.name} ({sym.exchange})")
         
         logger.info("\nSample US Symbols:")
-        us_samples = session.query(Symbol).filter_by(market='US').limit(5).all()
+        us_samples = session.query(Symbol).filter_by(market=MARKET_US).limit(5).all()
         for sym in us_samples:
             logger.info(f"  {sym.symbol} - {sym.name} ({sym.exchange})")
 
@@ -225,7 +231,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Load symbols into database")
     parser.add_argument(
         "--market",
-        choices=["IN", "US", "ALL"],
+        choices=[MARKET_IN, MARKET_US, "ALL"],
         default="ALL",
         help="Market to load symbols for (IN=India, US=United States, ALL=Both)",
     )
@@ -241,11 +247,11 @@ def main() -> int:
     try:
         total_loaded = 0
         
-        if args.market in ["IN", "ALL"]:
+        if args.market in [MARKET_IN, "ALL"]:
             total_loaded += load_indian_symbols()
             logger.info("")
         
-        if args.market in ["US", "ALL"]:
+        if args.market in [MARKET_US, "ALL"]:
             total_loaded += load_us_symbols()
             logger.info("")
         
