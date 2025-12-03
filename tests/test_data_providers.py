@@ -5,7 +5,7 @@ Tests YahooFinanceProvider and ZerodhaProvider with mocked external dependencies
 
 import pytest
 from unittest.mock import MagicMock, patch
-from datetime import date
+from datetime import date, datetime
 import pandas as pd
 
 from backend.core.constants import (
@@ -163,15 +163,236 @@ class TestZerodhaProvider:
         
         provider = ZerodhaProvider()
         
-        # We need to mock datetime because Zerodha client uses datetime.combine
-        from datetime import datetime
-        
         result = provider.get_historical_data('RELIANCE', date(2023, 1, 1), date(2023, 1, 1))
         
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 1
         assert result.iloc[0][COL_CLOSE] == 2520.0
         assert 'adjusted_close' in result.columns
+    
+    def test_get_nse_instruments(self, mock_kiteconnect):
+        """Test fetching NSE instruments list."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = [
+            {
+                'instrument_token': 123456,
+                'tradingsymbol': 'RELIANCE',
+                'name': 'Reliance Industries Ltd',
+                'exchange': EXCHANGE_NSE,
+                'instrument_type': 'EQ',
+                'segment': 'NSE'
+            },
+            {
+                'instrument_token': 789012,
+                'tradingsymbol': 'TCS',
+                'name': 'Tata Consultancy Services Ltd',
+                'exchange': EXCHANGE_NSE,
+                'instrument_type': 'EQ',
+                'segment': 'NSE'
+            }
+        ]
+        
+        provider = ZerodhaProvider()
+        instruments = provider.get_nse_instruments()
+        
+        assert len(instruments) == 2
+        assert instruments[0]['symbol'] == 'RELIANCE'
+        assert instruments[0]['exchange'] == EXCHANGE_NSE
+        assert instruments[0]['market'] == MARKET_IN
+    
+    def test_get_symbols_list_nse(self, mock_kiteconnect):
+        """Test get_symbols_list for NSE."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = [
+            {
+                'instrument_token': 123456,
+                'tradingsymbol': 'RELIANCE',
+                'name': 'Reliance Industries Ltd',
+                'exchange': EXCHANGE_NSE,
+                'instrument_type': 'EQ',
+                'segment': 'NSE'
+            }
+        ]
+        
+        provider = ZerodhaProvider()
+        symbols = provider.get_symbols_list(exchange='NSE')
+        
+        assert len(symbols) == 1
+        assert symbols[0]['symbol'] == 'RELIANCE'
+    
+    def test_validate_symbol_success(self, mock_kiteconnect):
+        """Test successful symbol validation."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = [
+            {'instrument_token': 123456, 'tradingsymbol': 'RELIANCE', 'exchange': EXCHANGE_NSE}
+        ]
+        
+        provider = ZerodhaProvider()
+        assert provider.validate_symbol('RELIANCE', exchange=EXCHANGE_NSE) is True
+    
+    def test_validate_symbol_failure(self, mock_kiteconnect):
+        """Test failed symbol validation."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = []
+        
+        provider = ZerodhaProvider()
+        assert provider.validate_symbol('INVALID', exchange=EXCHANGE_NSE) is False
+
+
+class TestYahooFinanceProviderExtended:
+    """Extended test suite for YahooFinanceProvider."""
+    
+    def test_get_symbols_list(self, mock_yfinance):
+        """Test get_symbols_list method."""
+        # Mock the get_sp500_symbols method to avoid lxml dependency
+        with patch.object(YahooFinanceProvider, 'get_sp500_symbols') as mock_sp500:
+            mock_sp500.return_value = [
+                {'symbol': 'AAPL', 'name': 'Apple Inc.', 'exchange': 'NASDAQ', 'market': 'US', 'sector': 'Technology'},
+                {'symbol': 'MSFT', 'name': 'Microsoft Corp.', 'exchange': 'NASDAQ', 'market': 'US', 'sector': 'Technology'}
+            ]
+            
+            provider = YahooFinanceProvider()
+            symbols = provider.get_symbols_list()
+            assert isinstance(symbols, list)
+            assert len(symbols) > 0
+            assert all('symbol' in s for s in symbols)
+    
+    def test_data_validation_success(self, mock_yfinance):
+        """Test data validation with valid data."""
+        provider = YahooFinanceProvider()
+        
+        # Create valid DataFrame
+        data = {
+            COL_DATE: [date(2023, 1, 1)],
+            COL_OPEN: [150.0],
+            COL_HIGH: [155.0],
+            COL_LOW: [149.0],
+            COL_CLOSE: [153.0],
+            COL_VOLUME: [1000000],
+            'adjusted_close': [153.0]
+        }
+        df = pd.DataFrame(data)
+        
+        assert provider.validate_data(df) is True
+    
+    def test_data_validation_missing_columns(self, mock_yfinance):
+        """Test data validation with missing columns."""
+        provider = YahooFinanceProvider()
+        
+        # Create DataFrame with missing columns
+        data = {
+            COL_DATE: [date(2023, 1, 1)],
+            COL_CLOSE: [153.0]
+        }
+        df = pd.DataFrame(data)
+        
+        assert provider.validate_data(df) is False
+    
+    def test_data_validation_empty_dataframe(self, mock_yfinance):
+        """Test data validation with empty DataFrame."""
+        provider = YahooFinanceProvider()
+        df = pd.DataFrame()
+        
+        assert provider.validate_data(df) is False
+    
+    def test_error_handling_api_failure(self, mock_yfinance):
+        """Test error handling when API fails."""
+        mock_ticker = MagicMock()
+        mock_yfinance.Ticker.return_value = mock_ticker
+        mock_ticker.history.side_effect = Exception("API Error")
+        
+        provider = YahooFinanceProvider()
+        
+        with pytest.raises(DataProviderError):
+            provider.get_historical_data('AAPL', date(2023, 1, 1), date(2023, 1, 2))
+
+
+class TestZerodhaProviderExtended:
+    """Extended test suite for ZerodhaProvider."""
+    
+    def test_instruments_caching(self, mock_kiteconnect):
+        """Test that instruments are cached."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = [
+            {'instrument_token': 123456, 'tradingsymbol': 'RELIANCE', 'exchange': EXCHANGE_NSE}
+        ]
+        
+        provider = ZerodhaProvider()
+        
+        # First call
+        provider.get_instrument_token('RELIANCE', EXCHANGE_NSE)
+        
+        # Second call should use cache
+        provider.get_instrument_token('RELIANCE', EXCHANGE_NSE)
+        
+        # instruments() should only be called once (caching works)
+        assert mock_kite_instance.instruments.call_count == 1
+    
+    def test_get_historical_data_not_found(self, mock_kiteconnect):
+        """Test handling of symbol not found."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = []
+        
+        provider = ZerodhaProvider()
+        
+        with pytest.raises(DataNotFoundError):
+            provider.get_historical_data('INVALID', date(2023, 1, 1), date(2023, 1, 2))
+    
+    def test_get_bse_instruments(self, mock_kiteconnect):
+        """Test fetching BSE instruments list."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = [
+            {
+                'instrument_token': 123456,
+                'tradingsymbol': 'RELIANCE',
+                'name': 'Reliance Industries Ltd',
+                'exchange': EXCHANGE_BSE,
+                'instrument_type': 'EQ',
+                'segment': 'BSE'
+            }
+        ]
+        
+        provider = ZerodhaProvider()
+        instruments = provider.get_bse_instruments()
+        
+        assert len(instruments) == 1
+        assert instruments[0]['exchange'] == EXCHANGE_BSE
+    
+    def test_get_symbols_list_all(self, mock_kiteconnect):
+        """Test get_symbols_list for all exchanges."""
+        mock_kite_instance = mock_kiteconnect.return_value
+        mock_kite_instance.instruments.return_value = [
+            {
+                'instrument_token': 123456,
+                'tradingsymbol': 'RELIANCE',
+                'name': 'Reliance Industries Ltd',
+                'exchange': EXCHANGE_NSE,
+                'instrument_type': 'EQ',
+                'segment': 'NSE'
+            },
+            {
+                'instrument_token': 789012,
+                'tradingsymbol': 'RELIANCE',
+                'name': 'Reliance Industries Ltd',
+                'exchange': EXCHANGE_BSE,
+                'instrument_type': 'EQ',
+                'segment': 'BSE'
+            }
+        ]
+        
+        provider = ZerodhaProvider()
+        symbols = provider.get_symbols_list(exchange='ALL')
+        
+        # Should get both NSE and BSE
+        assert len(symbols) == 2
+    
+    def test_get_symbols_list_invalid_exchange(self, mock_kiteconnect):
+        """Test get_symbols_list with invalid exchange."""
+        provider = ZerodhaProvider()
+        
+        with pytest.raises(DataProviderError):
+            provider.get_symbols_list(exchange='INVALID')
+
 
 
 if __name__ == "__main__":

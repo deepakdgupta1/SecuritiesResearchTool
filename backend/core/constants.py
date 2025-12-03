@@ -448,6 +448,20 @@ EXCHANGE_UNKNOWN = "UNKNOWN"
 # DATA PROVIDER CONFIGURATION
 # ============================================================================
 
+YAHOO_RATE_LIMIT = 10.0
+"""Yahoo Finance API rate limit (requests per second).
+
+Purpose: Prevent rate limiting from Yahoo Finance.
+Rationale: Yahoo Finance is lenient, but 10 req/s is conservative and safe.
+"""
+
+ZERODHA_RATE_LIMIT = 3.0
+"""Zerodha Kite Connect API rate limit (requests per second).
+
+Purpose: Comply with Zerodha API rate limits.
+Rationale: Kite Connect has documented limit of 3 req/s per API key.
+"""
+
 INTERVAL_DAILY = "1d"
 """Daily data interval for Yahoo Finance."""
 

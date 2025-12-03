@@ -141,6 +141,11 @@ class ZerodhaProvider(BaseDataProvider):
         """
         instruments = self._get_instruments()
         
+        # Check if instruments DataFrame is empty
+        if instruments.empty:
+            self.logger.warning(f"No instruments available")
+            return None
+        
         # Filter by symbol and exchange
         matches = instruments[
             (instruments['tradingsymbol'] == symbol) &

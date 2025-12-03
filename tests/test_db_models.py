@@ -6,8 +6,6 @@ Tests SQLAlchemy ORM models for structure, relationships, and constraints.
 import pytest
 from datetime import date, datetime
 from decimal import Decimal
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from backend.models.db_models import (
     Base,
@@ -20,31 +18,18 @@ from backend.models.db_models import (
     BacktestTrade,
 )
 
+# Note: db_session fixture is provided by conftest.py
+# It uses the PostgreSQL database configured in .env
 
-@pytest.fixture
-def db_engine():
-    """Create an in-memory SQLite database for testing."""
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    return engine
-
-
-@pytest.fixture
-def db_session(db_engine):
-    """Create a database session for testing."""
-    Session = sessionmaker(bind=db_engine)
-    session = Session()
-    yield session
-    session.close()
 
 
 class TestSymbol:
     """Test suite for Symbol model."""
     
-    def test_create_symbol(self, db_session):
+    def test_create_symbol(self, db_session, unique_symbol):
         """Test creating a Symbol record."""
         symbol = Symbol(
-            symbol="AAPL",
+            symbol=unique_symbol,
             name="Apple Inc.",
             exchange="NASDAQ",
             market="US",
@@ -56,7 +41,7 @@ class TestSymbol:
         db_session.commit()
         
         # Verify record was created
-        retrieved = db_session.query(Symbol).filter_by(symbol="AAPL").first()
+        retrieved = db_session.query(Symbol).filter_by(symbol=unique_symbol).first()
         assert retrieved is not None
         assert retrieved.name == "Apple Inc."
         assert retrieved.exchange == "NASDAQ"
@@ -64,10 +49,10 @@ class TestSymbol:
         assert retrieved.sector == "Technology"
         assert retrieved.active is True
     
-    def test_symbol_unique_constraint(self, db_session):
+    def test_symbol_unique_constraint(self, db_session, unique_symbol):
         """Test that duplicate symbols are rejected."""
-        symbol1 = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
-        symbol2 = Symbol(symbol="AAPL", name="Duplicate", exchange="NASDAQ", market="US")
+        symbol1 = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol2 = Symbol(symbol=unique_symbol, name="Duplicate", exchange="NASDAQ", market="US")
         
         db_session.add(symbol1)
         db_session.commit()
@@ -76,23 +61,23 @@ class TestSymbol:
         with pytest.raises(Exception):  # IntegrityError in PostgreSQL, generic in SQLite
             db_session.commit()
     
-    def test_symbol_repr(self, db_session):
+    def test_symbol_repr(self, db_session, unique_symbol):
         """Test Symbol __repr__ method."""
-        symbol = Symbol(symbol="AAPL", exchange="NASDAQ")
+        symbol = Symbol(symbol=unique_symbol, exchange="NASDAQ")
         db_session.add(symbol)
         db_session.commit()
         
-        assert "AAPL" in repr(symbol)
+        assert unique_symbol in repr(symbol)
         assert "NASDAQ" in repr(symbol)
 
 
 class TestPriceData:
     """Test suite for PriceData model."""
     
-    def test_create_price_data(self, db_session):
+    def test_create_price_data(self, db_session, unique_symbol):
         """Test creating a PriceData record."""
         # Create parent symbol
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         db_session.add(symbol)
         db_session.commit()
         
@@ -119,9 +104,9 @@ class TestPriceData:
         assert retrieved.close == Decimal("152.00")
         assert retrieved.volume == 1000000
     
-    def test_price_data_relationship(self, db_session):
+    def test_price_data_relationship(self, db_session, unique_symbol):
         """Test relationship between Symbol and PriceData."""
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         db_session.add(symbol)
         db_session.commit()
         
@@ -140,16 +125,16 @@ class TestPriceData:
         db_session.commit()
         
         # Test relationship
-        symbol_with_prices = db_session.query(Symbol).filter_by(symbol="AAPL").first()
+        symbol_with_prices = db_session.query(Symbol).filter_by(symbol=unique_symbol).first()
         assert len(symbol_with_prices.price_data) == 2
 
 
 class TestPatternDetection:
     """Test suite for PatternDetection model."""
     
-    def test_create_pattern_detection(self, db_session):
+    def test_create_pattern_detection(self, db_session, unique_symbol):
         """Test creating a PatternDetection record."""
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         db_session.add(symbol)
         db_session.commit()
         
@@ -174,9 +159,9 @@ class TestPatternDetection:
         assert retrieved.weinstein_stage == 2
         assert retrieved.pattern_metadata["contractions"] == 3
     
-    def test_pattern_detection_metadata_jsonb(self, db_session):
+    def test_pattern_detection_metadata_jsonb(self, db_session, unique_symbol):
         """Test JSONB field for pattern metadata."""
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         db_session.add(symbol)
         db_session.commit()
         
@@ -197,16 +182,17 @@ class TestPatternDetection:
         db_session.add(pattern)
         db_session.commit()
         
-        retrieved = db_session.query(PatternDetection).first()
+        
+        retrieved = db_session.query(PatternDetection).filter_by(symbol_id=symbol.id).first()
         assert retrieved.pattern_metadata == metadata
 
 
 class TestTradeRecommendation:
     """Test suite for TradeRecommendation model."""
     
-    def test_create_trade_recommendation(self, db_session):
+    def test_create_trade_recommendation(self, db_session, unique_symbol):
         """Test creating a TradeRecommendation record."""
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         db_session.add(symbol)
         db_session.commit()
         
@@ -268,10 +254,10 @@ class TestBacktestResult:
 class TestBacktestTrade:
     """Test suite for BacktestTrade model."""
     
-    def test_create_backtest_trade(self, db_session):
+    def test_create_backtest_trade(self, db_session, unique_symbol):
         """Test creating a BacktestTrade record."""
         # Create dependencies
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         backtest = BacktestResult(
             backtest_name="Test Backtest",
             start_date=date(2020, 1, 1),
@@ -306,9 +292,9 @@ class TestBacktestTrade:
         assert retrieved.profit_loss == Decimal("1500.00")
         assert retrieved.exit_reason == "TAKE_PROFIT"
     
-    def test_backtest_trade_relationships(self, db_session):
+    def test_backtest_trade_relationships(self, db_session, unique_symbol):
         """Test relationships between BacktestResult and BacktestTrade."""
-        symbol = Symbol(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", market="US")
+        symbol = Symbol(symbol=unique_symbol, name="Apple Inc.", exchange="NASDAQ", market="US")
         backtest = BacktestResult(backtest_name="Test Backtest")
         
         db_session.add_all([symbol, backtest])
@@ -331,5 +317,5 @@ class TestBacktestTrade:
         db_session.commit()
         
         # Test relationship
-        retrieved_backtest = db_session.query(BacktestResult).first()
+        retrieved_backtest = db_session.query(BacktestResult).filter_by(id=backtest.id).first()
         assert len(retrieved_backtest.backtest_trades) == 2

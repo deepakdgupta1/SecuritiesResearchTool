@@ -1,0 +1,113 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: /home/deeog/Desktop/SecuritiesResearchTool
+configfile: pyproject.toml
+plugins: anyio-4.12.0, cov-4.1.0, hypothesis-6.148.5
+collected 6 items
+
+tests/test_indicators.py 2025-12-03 15:05:50,943 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2025-12-03 15:05:50,944 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-12-03 15:05:50,946 INFO sqlalchemy.engine.Engine select current_schema()
+2025-12-03 15:05:50,946 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-12-03 15:05:50,946 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2025-12-03 15:05:50,946 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-12-03 15:05:50,947 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-12-03 15:05:50,949 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,950 INFO sqlalchemy.engine.Engine [generated in 0.00022s] {'table_name': 'symbols', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,951 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,951 INFO sqlalchemy.engine.Engine [cached since 0.001681s ago] {'table_name': 'price_data', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,951 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,951 INFO sqlalchemy.engine.Engine [cached since 0.002079s ago] {'table_name': 'derived_metrics', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,952 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,952 INFO sqlalchemy.engine.Engine [cached since 0.002437s ago] {'table_name': 'pattern_detections', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,952 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,952 INFO sqlalchemy.engine.Engine [cached since 0.002939s ago] {'table_name': 'trade_recommendations', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,953 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,953 INFO sqlalchemy.engine.Engine [cached since 0.003411s ago] {'table_name': 'backtest_results', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,953 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+2025-12-03 15:05:50,953 INFO sqlalchemy.engine.Engine [cached since 0.003896s ago] {'table_name': 'backtest_trades', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+2025-12-03 15:05:50,954 INFO sqlalchemy.engine.Engine COMMIT
+...F..
+
+=================================== FAILURES ===================================
+______________________________ test_calculate_rsi ______________________________
+
+sample_price_data =             close
+2023-01-01    100
+2023-01-02    101
+2023-01-03    102
+2023-01-04    103
+2023-01-05    104
+...           ...
+2023-10-23    395
+2023-10-24    396
+2023-10-25    397
+2023-10-26    398
+2023-10-27    399
+
+[300 rows x 1 columns]
+
+    def test_calculate_rsi(sample_price_data):
+        """Test RSI calculation."""
+        series = sample_price_data["close"]
+        from backend.indicators.momentum import calculate_rsi
+    
+        rsi = calculate_rsi(series, period=14)
+    
+        # Check length
+        assert len(rsi) == len(series)
+    
+        # RSI should be between 0 and 100
+        # First 14 values will be NaN
+>       assert pd.isna(rsi.iloc[13])
+E       assert False
+E        +  where False = <function isna at 0x726de5471c60>(np.float64(100.0))
+E        +    where <function isna at 0x726de5471c60> = pd.isna
+
+tests/test_indicators.py:92: AssertionError
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                       Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------
+backend/__init__.py                            0      0   100%
+backend/core/__init__.py                       0      0   100%
+backend/core/config.py                        28      0   100%
+backend/core/constants.py                    145      0   100%
+backend/core/database.py                      49     25    49%   66, 103-113, 150-155, 174-181
+backend/data_providers/__init__.py             0      0   100%
+backend/data_providers/base.py                67     67     0%   12-246
+backend/data_providers/yahoo_client.py        79     79     0%   7-292
+backend/data_providers/zerodha_client.py     113    113     0%   7-374
+backend/indicators/__init__.py                 0      0   100%
+backend/indicators/momentum.py                23      1    96%   68
+backend/indicators/moving_averages.py         15      1    93%   48
+backend/indicators/utils.py                   19     19     0%   5-63
+backend/main.py                                9      9     0%   1-16
+backend/models/__init__.py                     0      0   100%
+backend/models/db_models.py                  136      7    95%   88, 134, 204, 261, 323, 387, 447
+backend/scripts/__init__.py                    0      0   100%
+backend/scripts/init_db.py                   127    127     0%   16-271
+backend/scripts/load_history.py              121    121     0%   27-265
+backend/scripts/load_symbols.py              146    146     0%   17-282
+backend/scripts/validate_data.py              73     73     0%   17-191
+------------------------------------------------------------------------
+TOTAL                                       1150    788    31%
+
+FAIL Required test coverage of 80% not reached. Total coverage: 31.48%
+=========================== short test summary info ============================
+FAILED tests/test_indicators.py::test_calculate_rsi - assert False
+========================= 1 failed, 5 passed in 1.17s ==========================

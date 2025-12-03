@@ -24,13 +24,13 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    JSON,
     Numeric,
     String,
     Text,
     UniqueConstraint,
     Index,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 # Base class for all ORM models
@@ -242,7 +242,7 @@ class PatternDetection(Base):
     meets_trend_template = Column(Boolean, default=False)
     
     # Pattern-specific details stored as JSON
-    pattern_metadata = Column(JSONB)
+    pattern_metadata = Column(JSON)
     
     # Audit
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -360,7 +360,7 @@ class BacktestResult(Base):
     backtest_name = Column(String(200), index=True)
     start_date = Column(Date)
     end_date = Column(Date)
-    strategy_config = Column(JSONB)
+    strategy_config = Column(JSON)
     
     # Performance metrics
     total_return = Column(Numeric(10, 4))

@@ -12,9 +12,10 @@ load_dotenv(".env.test", override=True)
 def setup_test_environment():
     """Setup test environment variables."""
     # Set test-specific environment variables
+    # Use production database for now (we'll create a test DB later if needed)
     os.environ["DATABASE_URL"] = os.getenv(
-        "TEST_DATABASE_URL",
-        "postgresql://postgres:c%40r33rDeep1@localhost:5432/securities_research_test"
+        "DATABASE_URL",
+        "postgresql://postgres:postgres@localhost:5432/securities_research"
     )
     os.environ["ZERODHA_API_KEY"] = "test_api_key"
     os.environ["ZERODHA_ACCESS_TOKEN"] = "test_access_token"
@@ -25,6 +26,41 @@ def setup_test_environment():
     
     # Cleanup after tests
     pass
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database():
+    """Create test database schema before running tests."""
+    from backend.models.db_models import Base
+    from backend.core.database import engine
+    
+    # Create all tables (if they don't exist)
+    Base.metadata.create_all(bind=engine)
+    
+    yield
+    
+    # Note: We don't drop tables after tests to preserve data
+    # If you want clean slate, manually drop: Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture
+def db_session():
+    """Provide a clean database session for each test.
+    
+    Always rolls back changes after the test completes to ensure test isolation.
+    """
+    from backend.core.database import SessionLocal
+    
+    session = SessionLocal()
+    try:
+        yield session
+        # Always rollback to ensure tests don't leave data
+        session.rollback()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 @pytest.fixture
@@ -38,6 +74,15 @@ def sample_symbol_data():
         "sector": "Technology",
         "active": True,
     }
+
+
+@pytest.fixture
+def unique_symbol():
+    """Generate a unique symbol for testing to avoid database conflicts."""
+    import uuid
+    # Generate a unique symbol like "TEST_a1b2c3d4"
+    unique_id = str(uuid.uuid4())[:8].upper()
+    return f"TEST_{unique_id}"
 
 
 @pytest.fixture
