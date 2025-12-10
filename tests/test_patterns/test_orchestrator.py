@@ -1,8 +1,10 @@
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import date
 from typing import Dict
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from backend.patterns.orchestrator import PatternScanner
 from backend.patterns.trend_template import TrendTemplateDetector
 

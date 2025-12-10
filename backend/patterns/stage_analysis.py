@@ -1,6 +1,7 @@
-from datetime import date
 from typing import Optional
+
 import pandas as pd
+
 from .base import PatternDetector, PatternResult
 
 
@@ -22,14 +23,18 @@ class WeinsteinStageAnalyzer(PatternDetector):
         self.ma_period = ma_period
         self.slope_window = slope_window
 
-    def detect(self, symbol: str, data: pd.DataFrame) -> Optional[PatternResult]:
+    def detect(
+            self,
+            symbol: str,
+            data: pd.DataFrame) -> Optional[PatternResult]:
         if len(data) < self.ma_period + self.slope_window:
             return None
 
         if "sma_150" not in data.columns:
             # Calculate if not present
             data = data.copy()
-            data["sma_150"] = data["close"].rolling(window=self.ma_period).mean()
+            data["sma_150"] = data["close"].rolling(
+                window=self.ma_period).mean()
 
         current = data.iloc[-1]
         close = current["close"]
@@ -83,7 +88,8 @@ class WeinsteinStageAnalyzer(PatternDetector):
             symbol=symbol,
             detection_date=data.index[-1].date(),
             confidence_score=confidence,
-            confirmed=(stage == 2),  # Only Stage 2 is "confirmed" as actionable
+            confirmed=(stage == 2),
+            # Only Stage 2 is "confirmed" as actionable
             weinstein_stage=stage,
             meta_data={
                 "stage": stage,

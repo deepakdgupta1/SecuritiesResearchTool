@@ -1,8 +1,7 @@
 """Risk management module for backtesting."""
-from typing import Dict, List, Optional
-import pandas as pd
+from typing import List, Optional
+
 from .positions import Position
-from .utils import calculate_atr
 
 
 class RiskManager:
@@ -74,7 +73,8 @@ class RiskManager:
             New stop-loss price
         """
         # Check if trailing stop should be activated
-        gain_pct = (current_price - position.entry_price) / position.entry_price
+        gain_pct = (current_price - position.entry_price) / \
+            position.entry_price
 
         if gain_pct < self.trailing_stop_trigger_pct:
             # Keep initial stop-loss
@@ -82,7 +82,8 @@ class RiskManager:
 
         # Calculate trailing stop
         if atr is not None and atr > 0:
-            trailing_stop = current_price - (self.trailing_stop_atr_multiplier * atr)
+            trailing_stop = current_price - \
+                (self.trailing_stop_atr_multiplier * atr)
         else:
             # Fallback: use percentage-based trailing
             trailing_stop = current_price * (1 - self.initial_stop_loss_pct)

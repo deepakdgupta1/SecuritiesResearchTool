@@ -1,9 +1,10 @@
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import date
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from backend.patterns.double_bottom import DoubleBottomDetector
-from backend.patterns.base import PatternResult
 
 
 @pytest.fixture

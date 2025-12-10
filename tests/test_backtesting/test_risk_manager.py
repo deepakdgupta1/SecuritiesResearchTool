@@ -1,8 +1,8 @@
 """Tests for RiskManager class."""
-import pytest
 from datetime import date
-from backend.backtesting.risk_manager import RiskManager
+
 from backend.backtesting.positions import Position
+from backend.backtesting.risk_manager import RiskManager
 
 
 class TestRiskManager:

@@ -1,7 +1,7 @@
 """Utility functions for backtesting."""
-import pandas as pd
-import numpy as np
 from typing import List
+
+import pandas as pd
 
 
 def calculate_atr(
@@ -25,7 +25,8 @@ def calculate_atr(
     high_close_prev = abs(high - close.shift(1))
     low_close_prev = abs(low - close.shift(1))
 
-    tr = pd.concat([high_low, high_close_prev, low_close_prev], axis=1).max(axis=1)
+    tr = pd.concat([high_low, high_close_prev, low_close_prev],
+                   axis=1).max(axis=1)
     atr = tr.rolling(window=period).mean()
 
     return atr

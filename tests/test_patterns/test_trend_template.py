@@ -1,9 +1,11 @@
-import pytest
-import pandas as pd
+from datetime import date
+
 import numpy as np
-from datetime import date, timedelta
-from backend.patterns.trend_template import TrendTemplateDetector
+import pandas as pd
+import pytest
+
 from backend.patterns.base import PatternResult
+from backend.patterns.trend_template import TrendTemplateDetector
 
 
 @pytest.fixture
@@ -27,8 +29,10 @@ def perfect_trend_data() -> pd.DataFrame:
     # 52 week high/low
     # Price should be within 25% of high and > 30% above low
     current_price = close[-1]
-    df['week_52_high'] = current_price * 1.05  # Close is 95% of high (within 25%)
-    df['week_52_low'] = current_price * 0.5  # Close is 200% of low (> 30% above)
+    # Close is 95% of high (within 25%)
+    df['week_52_high'] = current_price * 1.05
+    # Close is 200% of low (> 30% above)
+    df['week_52_low'] = current_price * 0.5
 
     df['mansfield_rs'] = 1.0  # Positive RS
 
@@ -47,10 +51,12 @@ def test_detect_match(perfect_trend_data: pd.DataFrame) -> None:
     assert result.meets_trend_template is True
 
 
-def test_detect_fail_price_below_50sma(perfect_trend_data: pd.DataFrame) -> None:
+def test_detect_fail_price_below_50sma(
+        perfect_trend_data: pd.DataFrame) -> None:
     # Modify data so price is below 50 SMA
     idx = perfect_trend_data.index[-1]
-    perfect_trend_data.loc[idx, 'close'] = perfect_trend_data['sma_50'].iloc[-1] - 1
+    perfect_trend_data.loc[idx,
+                           'close'] = perfect_trend_data['sma_50'].iloc[-1] - 1
 
     detector = TrendTemplateDetector()
     result = detector.detect("TEST", perfect_trend_data)
@@ -58,7 +64,8 @@ def test_detect_fail_price_below_50sma(perfect_trend_data: pd.DataFrame) -> None
     assert result is None
 
 
-def test_detect_fail_200sma_downtrend(perfect_trend_data: pd.DataFrame) -> None:
+def test_detect_fail_200sma_downtrend(
+        perfect_trend_data: pd.DataFrame) -> None:
     # 200 SMA trending down
     perfect_trend_data['sma_200'] = np.linspace(110, 100, 30)
     # Ensure other ordering criteria still met relative to this new 200 SMA

@@ -1,6 +1,6 @@
 """Tests for Position and Trade dataclasses."""
-import pytest
 from datetime import date
+
 from backend.backtesting.positions import Position, Trade
 
 

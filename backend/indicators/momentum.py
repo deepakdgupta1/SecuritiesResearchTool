@@ -36,20 +36,20 @@ def calculate_macd(
         pd.DataFrame: DataFrame with columns ['macd', 'macd_signal', 'macd_histogram'].
     """
     macd_df = ta.macd(series, fast=fast, slow=slow, signal=signal)
-    
+
     # pandas_ta returns columns like MACD_12_26_9, MACDs_12_26_9, MACDh_12_26_9
     # We need to rename them to standard names
-    
+
     # Find the column names dynamically as they depend on the periods
     macd_col = f"MACD_{fast}_{slow}_{signal}"
     signal_col = f"MACDs_{fast}_{slow}_{signal}"
     hist_col = f"MACDh_{fast}_{slow}_{signal}"
-    
+
     result = pd.DataFrame(index=series.index)
     result["macd"] = macd_df[macd_col]
     result["macd_signal"] = macd_df[signal_col]
     result["macd_histogram"] = macd_df[hist_col]
-    
+
     return result
 
 
@@ -68,7 +68,7 @@ def calculate_all_momentum_indicators(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("DataFrame must contain 'close' column")
 
     df["rsi_14"] = calculate_rsi(df["close"], 14)
-    
+
     macd_data = calculate_macd(df["close"])
     df["macd"] = macd_data["macd"]
     df["macd_signal"] = macd_data["macd_signal"]

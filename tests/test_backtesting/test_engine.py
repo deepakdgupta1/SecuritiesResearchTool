@@ -1,12 +1,11 @@
 """Tests for BacktestEngine class."""
-from typing import Dict, List, Any
-import pytest
-import pandas as pd
+from typing import Any, Dict, List
+
 import numpy as np
-from datetime import date
+import pandas as pd
+import pytest
 
 from backend.backtesting.engine import BacktestEngine
-from backend.backtesting.positions import Trade
 
 
 @pytest.fixture

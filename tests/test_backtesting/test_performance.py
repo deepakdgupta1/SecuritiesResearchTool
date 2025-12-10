@@ -1,8 +1,9 @@
 """Tests for PerformanceCalculator class."""
-from typing import List
-import pytest
-import pandas as pd
 from datetime import date
+from typing import List
+
+import pandas as pd
+import pytest
 
 from backend.backtesting.performance import PerformanceCalculator
 from backend.backtesting.positions import Trade

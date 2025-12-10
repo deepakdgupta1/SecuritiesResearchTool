@@ -1,12 +1,14 @@
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional
+
 import pandas as pd
+
 from .base import PatternDetector, PatternResult
-from .trend_template import TrendTemplateDetector
-from .vcp import VCPDetector
 from .cup_with_handle import CupWithHandleDetector
 from .double_bottom import DoubleBottomDetector
 from .high_tight_flag import HighTightFlagDetector
 from .stage_analysis import WeinsteinStageAnalyzer
+from .trend_template import TrendTemplateDetector
+from .vcp import VCPDetector
 
 
 class PatternScanner:

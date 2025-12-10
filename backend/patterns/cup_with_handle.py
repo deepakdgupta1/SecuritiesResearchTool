@@ -1,9 +1,9 @@
-from datetime import date
 from typing import Optional
-import numpy as np
+
 import pandas as pd
+
 from .base import PatternDetector, PatternResult
-from .utils import find_local_extrema, calculate_percentage_change
+from .utils import calculate_percentage_change, find_local_extrema
 
 
 class CupWithHandleDetector(PatternDetector):
@@ -31,7 +31,10 @@ class CupWithHandleDetector(PatternDetector):
         self.min_cup_length_days = min_cup_length_days
         self.max_cup_length_days = max_cup_length_days
 
-    def detect(self, symbol: str, data: pd.DataFrame) -> Optional[PatternResult]:
+    def detect(
+            self,
+            symbol: str,
+            data: pd.DataFrame) -> Optional[PatternResult]:
         if len(data) < self.min_cup_length_days:
             return None
 
@@ -73,7 +76,8 @@ class CupWithHandleDetector(PatternDetector):
                     continue
 
                 # Find lowest point between peaks (cup bottom)
-                interval_mins = [m for m in min_indices if left_peak_idx < m < right_peak_idx]
+                interval_mins = [
+                    m for m in min_indices if left_peak_idx < m < right_peak_idx]
                 if not interval_mins:
                     continue
 
@@ -85,7 +89,8 @@ class CupWithHandleDetector(PatternDetector):
                     calculate_percentage_change(left_peak_val, cup_bottom_val)
                 )
 
-                if not (self.min_cup_depth_pct <= cup_depth_pct <= self.max_cup_depth_pct):
+                if not (self.min_cup_depth_pct <=
+                        cup_depth_pct <= self.max_cup_depth_pct):
                     continue
 
                 # Check if right peak is within 5% of left peak (symmetry)

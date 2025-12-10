@@ -5,15 +5,18 @@ Relative strength indicators calculation module.
 import pandas as pd
 
 
-def calculate_mansfield_rs(symbol_df: pd.DataFrame, benchmark_df: pd.DataFrame, period: int = 52) -> pd.Series:
+def calculate_mansfield_rs(
+        symbol_df: pd.DataFrame,
+        benchmark_df: pd.DataFrame,
+        period: int = 52) -> pd.Series:
     """
     Calculate Mansfield Relative Strength.
-    
+
     Formula:
     1. Calculate Relative Performance (RP) = Symbol Close / Benchmark Close
     2. Calculate 52-week SMA of RP (SMA_RP)
     3. Mansfield RS = ((RP / SMA_RP) - 1) * 10
-    
+
     Args:
         symbol_df: DataFrame for the symbol containing 'close' column.
         benchmark_df: DataFrame for the benchmark containing 'close' column.
@@ -32,24 +35,25 @@ def calculate_mansfield_rs(symbol_df: pd.DataFrame, benchmark_df: pd.DataFrame, 
     # Align dates
     # We need to ensure both series share the same index
     common_index = symbol_df.index.intersection(benchmark_df.index)
-    
+
     if len(common_index) == 0:
-        return pd.Series(index=symbol_df.index, dtype=float) # Return empty series with correct index
-        
+        # Return empty series with correct index
+        return pd.Series(index=symbol_df.index, dtype=float)
+
     s_close = symbol_df.loc[common_index, "close"]
     b_close = benchmark_df.loc[common_index, "close"]
-    
+
     # 1. Relative Performance
     rp = s_close / b_close
-    
+
     # 2. SMA of RP
     # 52 weeks * 5 days = 260 days. Standard is often 52 weeks.
     # If we assume daily data, 252 is a trading year.
     sma_rp = rp.rolling(window=252).mean()
-    
+
     # 3. Mansfield RS
     mansfield_rs = ((rp / sma_rp) - 1) * 10
-    
+
     # Reindex to original symbol index to keep shape (fill missing with NaN)
     return mansfield_rs.reindex(symbol_df.index)
 

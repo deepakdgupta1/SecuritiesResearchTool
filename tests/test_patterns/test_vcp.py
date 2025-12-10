@@ -1,9 +1,10 @@
-import pytest
-import pandas as pd
+from datetime import date
+
 import numpy as np
-from datetime import date, timedelta
+import pandas as pd
+import pytest
+
 from backend.patterns.vcp import VCPDetector
-from backend.patterns.base import PatternResult
 
 
 @pytest.fixture

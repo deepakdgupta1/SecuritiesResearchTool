@@ -5,15 +5,15 @@ Purpose:
     Centralized location for all magic numbers, thresholds, and configuration
     constants used throughout the application. This promotes maintainability
     and makes it easier to tune the system without hunting through code.
-    
+
 Design Philosophy:
     - All constants are grouped by functional area for easy navigation
     - Each constant includes a descriptive comment explaining its purpose
     - Values can be overridden via environment variables in production
-    
+
 Usage:
     from backend.core.constants import TREND_TEMPLATE_RS_THRESHOLD
-    
+
     if mansfield_rs > TREND_TEMPLATE_RS_THRESHOLD:
         # Stock meets RS criteria
 """
@@ -31,7 +31,7 @@ TREND_TEMPLATE_RS_THRESHOLD = 70
 Minimum Mansfield Relative Strength score for Trend Template qualification.
 
 Purpose: Filter out stocks with weak relative performance vs. market.
-Rationale: Minervini's research shows stocks with RS > 70 have higher 
+Rationale: Minervini's research shows stocks with RS > 70 have higher
            probability of sustained upward moves.
 """
 
@@ -69,7 +69,7 @@ VCP_MIN_CONTRACTIONS = 2
 Minimum number of pullback contractions required for valid VCP pattern.
 
 Purpose: Ensure pattern has sufficient structure to be meaningful.
-Rationale: Fewer than 2 contractions doesn't demonstrate the "tightening" 
+Rationale: Fewer than 2 contractions doesn't demonstrate the "tightening"
            characteristic of VCP.
 """
 
@@ -127,7 +127,7 @@ INITIAL_CAPITAL = 100000
 Initial portfolio capital for backtesting ($100,000).
 
 Purpose: Standard starting capital for backtest simulations.
-Rationale: Provides meaningful dollar amounts while being achievable for 
+Rationale: Provides meaningful dollar amounts while being achievable for
            individual investors.
 """
 
@@ -281,7 +281,7 @@ MA_PERIOD_150_DAY = 150
 MA_PERIOD_200_DAY = 200
 """200-day moving average period for daily charts."""
 
-# Moving Averages (Weekly Timeframe)  
+# Moving Averages (Weekly Timeframe)
 MA_PERIOD_10_WEEK = 10
 """10-week moving average period for weekly charts (~ 50-day equivalent)."""
 
@@ -482,4 +482,3 @@ COL_CLOSE = "close"
 COL_VOLUME = "volume"
 COL_ADJ_CLOSE = "adjusted_close"
 COL_DATE = "date"
-

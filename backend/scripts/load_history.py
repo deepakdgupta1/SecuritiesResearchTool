@@ -13,13 +13,13 @@ Features:
 Usage:
     # Load history for all symbols (default 20 years)
     python -m backend.scripts.load_history
-    
+
     # Load sample (10 symbols, 1 year)
     python -m backend.scripts.load_history --sample
-    
+
     # Load specific market
     python -m backend.scripts.load_history --market US
-    
+
     # Force full reload
     python -m backend.scripts.load_history --force
 """
@@ -28,35 +28,35 @@ import argparse
 import logging
 import sys
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
-from typing import List, Optional, Type
+from typing import Optional
 
-import pandas as pd
-from sqlalchemy import func, text
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
+
+from backend.core.config import settings
+from backend.core.constants import (
+    COL_ADJ_CLOSE,
+    COL_CLOSE,
+    COL_DATE,
+    COL_HIGH,
+    COL_LOW,
+    COL_OPEN,
+    COL_VOLUME,
+    MARKET_IN,
+    MARKET_US,
+)
+from backend.core.database import get_session
+from backend.data_providers.base import BaseDataProvider, DataNotFoundError
+from backend.data_providers.yahoo_client import YahooFinanceProvider
+from backend.data_providers.zerodha_client import ZerodhaProvider
+from backend.models.db_models import PriceData, Symbol
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from backend.core.config import settings
-from backend.core.constants import (
-    MARKET_IN,
-    MARKET_US,
-    COL_OPEN,
-    COL_HIGH,
-    COL_LOW,
-    COL_CLOSE,
-    COL_VOLUME,
-    COL_ADJ_CLOSE,
-    COL_DATE,
-)
-from backend.core.database import get_session
-from backend.models.db_models import Symbol, PriceData
-from backend.data_providers.base import BaseDataProvider, DataNotFoundError
-from backend.data_providers.yahoo_client import YahooFinanceProvider
-from backend.data_providers.zerodha_client import ZerodhaProvider
 
 # Configure logging
 logging.basicConfig(
@@ -81,7 +81,10 @@ def get_provider_for_market(market: str) -> Optional[BaseDataProvider]:
 
 def get_last_date(session, symbol_id: int) -> Optional[date]:
     """Get the last available date for a symbol in the database."""
-    result = session.query(func.max(PriceData.date)).filter_by(symbol_id=symbol_id).scalar()
+    result = session.query(
+        func.max(
+            PriceData.date)).filter_by(
+        symbol_id=symbol_id).scalar()
     return result
 
 
@@ -94,7 +97,7 @@ def load_symbol_history(
     force: bool = False
 ) -> int:
     """Load historical data for a single symbol.
-    
+
     Args:
         session: Database session
         provider: Data provider instance
@@ -102,7 +105,7 @@ def load_symbol_history(
         start_date: Target start date
         end_date: Target end date
         force: If True, reload even if data exists
-        
+
     Returns:
         Number of records inserted
     """
@@ -114,14 +117,17 @@ def load_symbol_history(
             if last_date:
                 # Start from next day
                 actual_start = last_date + timedelta(days=1)
-                
+
                 # If up to date, skip
                 if actual_start > end_date:
                     logger.debug(f"Skipping {symbol.symbol}: Up to date")
                     return 0
-        
-        logger.info(f"Fetching {symbol.symbol} ({symbol.market}) from {actual_start} to {end_date}")
-        
+
+        logger.info(
+            f"Fetching {
+                symbol.symbol} ({
+                symbol.market}) from {actual_start} to {end_date}")
+
         # Fetch data
         df = provider.get_historical_data(
             symbol=symbol.symbol,
@@ -129,11 +135,11 @@ def load_symbol_history(
             end_date=end_date,
             exchange=symbol.exchange if symbol.market == MARKET_IN else None
         )
-        
+
         if df.empty:
             logger.warning(f"No data found for {symbol.symbol}")
             return 0
-            
+
         # Prepare records for insertion
         records = []
         for _, row in df.iterrows():
@@ -147,7 +153,7 @@ def load_symbol_history(
                 'volume': int(row[COL_VOLUME]),
                 'adjusted_close': row[COL_ADJ_CLOSE],
             })
-            
+
         # Bulk insert with upsert (on conflict do update)
         stmt = insert(PriceData).values(records)
         stmt = stmt.on_conflict_do_update(
@@ -161,12 +167,12 @@ def load_symbol_history(
                 'adjusted_close': stmt.excluded.adjusted_close,
             }
         )
-        
+
         session.execute(stmt)
         session.commit()
-        
+
         return len(records)
-        
+
     except DataNotFoundError:
         logger.warning(f"Symbol {symbol.symbol} not found in provider")
         return 0
@@ -179,17 +185,34 @@ def load_symbol_history(
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Load historical price data")
-    parser.add_argument("--market", choices=[MARKET_IN, MARKET_US, "ALL"], default="ALL", help="Market to load")
-    parser.add_argument("--sample", action="store_true", help="Load sample data (10 symbols, 1 year)")
-    parser.add_argument("--force", action="store_true", help="Force reload existing data")
-    parser.add_argument("--days", type=int, default=None, help="Number of days to load (default: 20 years)")
-    
+    parser.add_argument(
+        "--market",
+        choices=[
+            MARKET_IN,
+            MARKET_US,
+            "ALL"],
+        default="ALL",
+        help="Market to load")
+    parser.add_argument(
+        "--sample",
+        action="store_true",
+        help="Load sample data (10 symbols, 1 year)")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force reload existing data")
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=None,
+        help="Number of days to load (default: 20 years)")
+
     args = parser.parse_args()
-    
+
     logger.info("=" * 70)
     logger.info("Securities Research Tool - Historical Data Loader")
     logger.info("=" * 70)
-    
+
     # Configuration
     end_date = date.today()
     if args.sample:
@@ -201,63 +224,69 @@ def main() -> int:
         days = args.days if args.days else (365 * 20)
         start_date = end_date - timedelta(days=days)
         limit = None
-        logger.info(f"Mode: FULL ({days/365:.1f} years)")
-    
+        logger.info(f"Mode: FULL ({days / 365:.1f} years)")
+
     total_records = 0
     start_time = time.time()
-    
+
     with get_session() as session:
         # Get symbols to process
-        query = session.query(Symbol).filter(Symbol.active == True)
-        
+        query = session.query(Symbol).filter(Symbol.active)
+
         if args.market != "ALL":
             query = query.filter(Symbol.market == args.market)
-            
+
         if limit:
             # For sample, take 5 from each market if ALL
             if args.market == "ALL":
-                us_symbols = session.query(Symbol).filter_by(market=MARKET_US, active=True).limit(5).all()
-                in_symbols = session.query(Symbol).filter_by(market=MARKET_IN, active=True).limit(5).all()
+                us_symbols = session.query(Symbol).filter_by(
+                    market=MARKET_US, active=True).limit(5).all()
+                in_symbols = session.query(Symbol).filter_by(
+                    market=MARKET_IN, active=True).limit(5).all()
                 symbols = us_symbols + in_symbols
             else:
                 symbols = query.limit(limit).all()
         else:
             symbols = query.all()
-            
+
         logger.info(f"Found {len(symbols)} symbols to process")
-        
+
         # Group by market to reuse providers
         symbols_by_market = {}
         for sym in symbols:
             if sym.market not in symbols_by_market:
                 symbols_by_market[sym.market] = []
             symbols_by_market[sym.market].append(sym)
-            
+
         # Process each market
         for market, market_symbols in symbols_by_market.items():
             provider = get_provider_for_market(market)
             if not provider:
-                logger.warning(f"Skipping {market} market: Provider not available")
+                logger.warning(
+                    f"Skipping {market} market: Provider not available")
                 continue
-                
-            logger.info(f"Processing {len(market_symbols)} symbols for {market}...")
-            
+
+            logger.info(
+                f"Processing {
+                    len(market_symbols)} symbols for {market}...")
+
             for i, symbol in enumerate(market_symbols):
                 records = load_symbol_history(
                     session, provider, symbol, start_date, end_date, args.force
                 )
                 total_records += records
-                
+
                 # Progress logging
                 if (i + 1) % 10 == 0:
-                    logger.info(f"Progress {market}: {i + 1}/{len(market_symbols)}")
-                    
+                    logger.info(f"Progress {market}: {
+                                i + 1}/{len(market_symbols)}")
+
     duration = time.time() - start_time
     logger.info("=" * 70)
     logger.info(f"✓ Data load completed in {duration:.2f}s")
     logger.info(f"Total records inserted: {total_records}")
     logger.info("=" * 70)
-    
+
     return 0
 
 

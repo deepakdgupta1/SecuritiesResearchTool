@@ -1,6 +1,7 @@
 """Pytest configuration and fixtures."""
 
 import os
+
 import pytest
 from dotenv import load_dotenv
 
@@ -21,36 +22,36 @@ def setup_test_environment():
     os.environ["ZERODHA_ACCESS_TOKEN"] = "test_access_token"
     os.environ["LOG_LEVEL"] = "DEBUG"
     os.environ["ENVIRONMENT"] = "testing"
-    
+
     yield
-    
+
     # Cleanup after tests
-    pass
 
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
     """Create test database schema before running tests."""
-    from backend.models.db_models import Base
     from backend.core.database import engine
-    
+    from backend.models.db_models import Base
+
     # Create all tables (if they don't exist)
     Base.metadata.create_all(bind=engine)
-    
+
     yield
-    
+
     # Note: We don't drop tables after tests to preserve data
-    # If you want clean slate, manually drop: Base.metadata.drop_all(bind=engine)
+    # If you want clean slate, manually drop:
+    # Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
 def db_session():
     """Provide a clean database session for each test.
-    
+
     Always rolls back changes after the test completes to ensure test isolation.
     """
     from backend.core.database import SessionLocal
-    
+
     session = SessionLocal()
     try:
         yield session
@@ -80,6 +81,7 @@ def sample_symbol_data():
 def unique_symbol():
     """Generate a unique symbol for testing to avoid database conflicts."""
     import uuid
+
     # Generate a unique symbol like "TEST_a1b2c3d4"
     unique_id = str(uuid.uuid4())[:8].upper()
     return f"TEST_{unique_id}"
@@ -90,7 +92,7 @@ def sample_price_data():
     """Sample price data for testing."""
     from datetime import date
     from decimal import Decimal
-    
+
     return {
         "date": date(2023, 1, 1),
         "open": Decimal("150.00"),

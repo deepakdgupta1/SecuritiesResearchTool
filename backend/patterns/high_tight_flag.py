@@ -1,7 +1,7 @@
-from datetime import date
 from typing import Optional
-import numpy as np
+
 import pandas as pd
+
 from .base import PatternDetector, PatternResult
 from .utils import calculate_percentage_change
 
@@ -30,7 +30,10 @@ class HighTightFlagDetector(PatternDetector):
         self.min_prior_gain_weeks = min_prior_gain_weeks
         self.max_consolidation_pct = max_consolidation_pct
 
-    def detect(self, symbol: str, data: pd.DataFrame) -> Optional[PatternResult]:
+    def detect(
+            self,
+            symbol: str,
+            data: pd.DataFrame) -> Optional[PatternResult]:
         min_days = self.min_prior_gain_weeks * 5  # 5 trading days per week
         max_days = self.max_prior_gain_weeks * 5
 
@@ -39,7 +42,7 @@ class HighTightFlagDetector(PatternDetector):
 
         closes = data["close"]
         highs = data["high"]
-        lows = data["low"]
+        data["low"]
 
         # Look for the pattern ending recently
         # Find potential flag pole (100%+ move)

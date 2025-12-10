@@ -21,6 +21,7 @@ Deliver maintainable, reliable, observable, secure, inclusive, and cost-effectiv
 - [8. Non-Functional Requirements](#8-non-functional-requirements)
 - [9. Inclusive & Accessible Engineering](#9-inclusive--accessible-engineering)
 - [10. Incident Management & Learning](#10-incident-management--learning)
+- [11. Python Specific Standards](#11-python-specific-standards)
 - [Enforcement & Evolution](#enforcement--evolution)
 
 ---
@@ -38,11 +39,14 @@ Deliver maintainable, reliable, observable, secure, inclusive, and cost-effectiv
 - Aim for ≤ ~50 lines; extract when readability or reuse suffers (strict 20–30 line limits are counterproductive).
 - Prefer parameter objects over lists longer than 4–5 parameters.
 - Avoid boolean flags that change core behavior — split into separate functions instead.
+- **All functions** must have type annotations for parameters and return values (where language supports).
+- Avoid side effects where possible.
 
 ### 1.3 Classes & Modules
 - Single Responsibility Principle: a class/module has one reason to change.
 - No god classes or `Utils` dumping grounds.
 - Clear boundaries: domain ↔ application ↔ infrastructure ↔ presentation.
+- Define all attributes explicitly (e.g. in the constructor/init).
 
 ### 1.4 Error Handling
 - Never swallow exceptions silently.
@@ -230,7 +234,7 @@ Automated promotion with blue/green or canary where possible; rollback plan mand
 
 ---
 
-## 11. Python Specific Standards
+## 11. Python Specific Standards (Additional to the above)
 
 ### 11.1 Project Layout & Dependencies
 - **Structure:** The `src` layout is mandatory (`src/my_project/`).
@@ -239,32 +243,80 @@ Automated promotion with blue/green or canary where possible; rollback plan mand
   - **Lockfiles:** Must be committed and include hashes.
   - **Forbidden:** No bare `requirements.txt` allowed in production repositories.
   - **Packaging:** Build wheels only (no sdists in production).
+  - Remove all unused imports
+  - All imports must be at the top of the file (before any code)
+  - Import order: (1) standard library, (2) third-party, (3) local application
+  - Use `isort` to automatically organize imports
+- **Pre-commit hooks:** Add a pre-commit hook to enforce these standards automatically before commits.
 
 ### 11.2 Style, Formatting & Linting
-- **Line Length:** 100 characters.
+- **Maximum line length**: 79 characters
 - **Formatter:** **Black** (`black --check`).
+  - Use parentheses for implicit line continuation on long lines
+  - Continuation lines must use proper indentation (hanging indent or aligned with opening delimiter)
+  - Avoid over-indented or under-indented continuation lines
 - **Linter:** **Ruff** (version ≥ 0.6).
   - Must select `"ALL"` rules with minimal ignores.
   - Command: `ruff check`.
+- **Whitespace, spacing and blank lines:**
+  - Single space around all operators (`=`, `+`, `-`, `*`, `/`, etc.)
+  - No spaces around `=` in default parameter assignments
+  - No whitespace immediately inside brackets, braces, or parentheses
+  - Single space after colons and commas
+  - At least two spaces before inline comments
+  - Single space after keywords (`if`, `for`, `while`, `def`, `class`, etc.)
+  - No trailing whitespace at end of lines
+  - No whitespace on blank lines
+  - Two blank lines before top-level function and class definitions
+  - Maximum two consecutive blank lines
+  - Files must end with exactly one blank line
+  - No blank lines at the end of files beyond the required single newline
 
-### 11.3 Type Safety
+### 11.3 Functions & Classes
+- **Class Attributes:** Define all attributes in `__init__` to avoid hidden state.
+- **Type Annotations:**
+  - **All functions** must have type annotations for parameters and return values.
+  - **Variables** that cannot have types inferred must have explicit type annotations (e.g., empty collections).
+  - **Generic types** (Dict, List, Set) must specify type parameters.
+  - Use `Optional[Type]` for arguments that can be `None`.
+  - Install available type stubs
+- **Cleanup:**
+  - Remove `f` prefix from strings without placeholders.
+  - Remove all unused assigned variables.
+  - Use proper exception chaining (`raise ... from e`).
+  - For untyped third-party libraries, add to `mypy.ini`: `ignore_missing_imports = True`.
+- **DataFrame Indexing:**
+  - `.loc[]` with multi-index requires proper tuple types: `df.loc[(date, symbol), :]`
+  - Use `.at[]` for scalar access with explicit type: `value: float = df.at[date, col]`
+  - `.iloc[]` with list indices needs explicit type handling
+  - Avoid mixing positional and label-based indexing
+- **Series to Scalar Conversion:**
+  - Always convert Series to expected scalar types explicitly
+  - Use `.iloc[0]`, `.at[index]`, or `.item()` for single values
+  - Cast to target type: `float(series.iloc[0])`
+- **NumPy Array Types:**
+  - Import `from numpy.typing import NDArray`
+  - Declare dtype explicitly: `arr: NDArray[np.float64] = np.array(data, dtype=np.float64)`
+  - For polyfit and similar: ensure input arrays have compatible types
+
+### 11.4 Type Safety
 - **Strict Compliance:** 100% type coverage required for all new or changed code.
 - **Tools:** **Mypy** in strict mode is mandatory. **Pyright** is optional but encouraged.
 - **Prohibitions:** No `Any`, `# type: ignore`, or unnecessary `cast(...)` usage without a linked ticket and comment.
 
-### 11.4 Testing & Reliability
+### 11.5 Testing & Reliability
 - **Framework:** **pytest** + **pytest-cov**.
 - **Coverage:** Target ≥ 95% branch coverage on new code.
 - **Methodology:**
   - Property-based testing (**Hypothesis**) encouraged for domain logic.
   - Snapshot testing (**Syrupy**) is allowed.
 
-### 11.5 Async & Concurrency
+### 11.6 Async & Concurrency
 - **Frameworks:** Prefer **anyio** or **trio** for new async services.
 - **Safety:** Never mix blocking I/O in async code without explicitly offloading it.
 - **HTTP Client:** Use **httpx** (Async-first).
 
-### 11.6 Security & Forbidden Patterns
+### 11.7 Security & Forbidden Patterns
 | Pattern | Reason | Allowed Alternative |
 | :--- | :--- | :--- |
 | `print()` | Pollutes logs | **structlog** |
@@ -272,18 +324,48 @@ Automated promotion with blue/green or canary where possible; rollback plan mand
 | `pickle` | Insecure/Brittle | **msgpack**, **orjson**, **Protobuf** |
 | `subprocess` (unsafe) | Injection risk | `subprocess.run(..., check=True, shell=False)` |
 
-### 11.7 Recommended Stack (2025 Standard)
+### 11.8 Recommended Stack (2025 Standard)
 - **HTTP API:** **FastAPI** (with Pydantic v2).
 - **Task Queue:** **arq** (default), dramatiq, or Celery.
 - **Settings:** **Pydantic v2 Settings** (Single source of truth).
 - **ORM:** **SQLModel** or **Tortoise-ORM** (Type-safe, lightweight).
 - **Logging:** **structlog** (Must output JSON in production).
 
-### 11.8 Deployment Containers
+### 11.9 Deployment Containers
 - **Base Image:** `python:3.11-slim-bookworm` (or official slim variant).
 - **Structure:** Multi-stage Dockerfiles are mandatory.
 
----
+### 11.10 Reference Guide for Common Linting Errors & Fixes
+- **Type Annotation Errors:**
+  - `[no-untyped-def]` - Missing function type annotations
+  - `[no-untyped-call]` - Calling untyped functions from typed code
+  - `[arg-type]` - Incompatible argument types
+  - `[attr-defined]` - Attribute doesn't exist on type
+  - `[type-arg]` - Missing generic type parameters
+  - `[var-annotated]` - Variable needs explicit type annotation
+  - `[no-any-return]` - Function returns Any instead of declared type
+  - `[assignment]` - Incompatible types in assignment
+  - `[call-arg]` - Missing or unexpected function arguments
+  - `[index]` - Invalid index type for data structure
+  - `[operator]` - Unsupported operand types for operator
+  - `[misc]` - Miscellaneous type errors (e.g., slice indices)
+  - `[call-overload]` - No matching overload for function call
+  - `[import-untyped]` - Missing library stubs or py.typed marker
+- **Specific flake8 codes:**
+  - `E127/E128` - Continuation line indentation issues
+  - `E201/E202` - Whitespace inside brackets
+  - `E221` - Multiple spaces before operator
+  - `E231` - Missing whitespace after comma/colon
+  - `E251/E252` - Spaces around parameter equals
+  - `E261` - Inline comment spacing
+  - `E271/E275` - Keyword spacing issues
+  - `E302/E303` - Blank line issues
+  - `E402` - Module import not at top
+  - `E501` - Line too long
+  - `F401` - Unused import
+  - `F541` - f-string without placeholders
+  - `F841` - Unused variable
+  - `W291/W293/W391` - Trailing whitespace issues
 
 ## Enforcement & Evolution
 

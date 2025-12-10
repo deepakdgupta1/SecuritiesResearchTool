@@ -1,7 +1,9 @@
 """Performance metrics calculator for backtesting."""
+from typing import Any, Dict, List
+
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Any
+
 from .positions import Trade
 
 
@@ -52,7 +54,8 @@ class PerformanceCalculator:
             total_return = 0.0
             days = 0
 
-        returns = equity_curve.pct_change().dropna() if len(equity_curve) > 1 else pd.Series([])
+        returns = equity_curve.pct_change().dropna() if len(
+            equity_curve) > 1 else pd.Series([])
 
         return {
             "total_return": total_return,
@@ -159,7 +162,8 @@ class PerformanceCalculator:
         Profit Factor = Gross Profit / Gross Loss
         """
         gross_profit = sum(t.profit_loss for t in trades if t.profit_loss > 0)
-        gross_loss = abs(sum(t.profit_loss for t in trades if t.profit_loss < 0))
+        gross_loss = abs(
+            sum(t.profit_loss for t in trades if t.profit_loss < 0))
 
         if gross_loss == 0:
             return float("inf") if gross_profit > 0 else 0.0

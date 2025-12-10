@@ -1,13 +1,14 @@
 """Core backtesting engine with positions-first algorithm."""
 import logging
-from datetime import date, timedelta
-from typing import Dict, List, Optional, Any
+from datetime import date
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
 
+from .performance import PerformanceCalculator
 from .positions import Position, Trade
 from .risk_manager import RiskManager
-from .performance import PerformanceCalculator
-from .utils import calculate_atr, get_trading_days
+from .utils import calculate_atr
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,9 @@ class BacktestEngine:
         # Determine date range from data if not provided
         all_dates = set()
         for df in price_data.values():
-            all_dates.update(df.index.date if hasattr(df.index, 'date') else df.index)
+            all_dates.update(
+                df.index.date if hasattr(
+                    df.index, 'date') else df.index)
 
         if not all_dates:
             return self._get_results()
@@ -216,7 +219,8 @@ class BacktestEngine:
                 continue
 
             entry_price = df.loc[current_date, "close"]
-            stop_loss = self.risk_manager.calculate_initial_stop_loss(entry_price)
+            stop_loss = self.risk_manager.calculate_initial_stop_loss(
+                entry_price)
             take_profit = self.risk_manager.calculate_take_profit(entry_price)
 
             # Calculate position size
@@ -301,7 +305,7 @@ class BacktestEngine:
 
         logger.info(
             f"EXIT: {symbol} {position.shares} shares @ ${exit_price:.2f} "
-            f"({reason}) P&L: ${profit_loss:.2f} ({profit_loss_pct*100:.1f}%)"
+            f"({reason}) P&L: ${profit_loss:.2f} ({profit_loss_pct * 100:.1f}%)"
         )
 
     def _calculate_portfolio_value(self) -> float:

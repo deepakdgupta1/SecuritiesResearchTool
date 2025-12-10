@@ -1,9 +1,9 @@
-from datetime import date
 from typing import Optional
-import numpy as np
+
 import pandas as pd
+
 from .base import PatternDetector, PatternResult
-from .utils import find_local_extrema, calculate_percentage_change
+from .utils import calculate_percentage_change, find_local_extrema
 
 
 class DoubleBottomDetector(PatternDetector):
@@ -28,7 +28,10 @@ class DoubleBottomDetector(PatternDetector):
         self.min_separation_days = min_separation_days
         self.max_separation_days = max_separation_days
 
-    def detect(self, symbol: str, data: pd.DataFrame) -> Optional[PatternResult]:
+    def detect(
+            self,
+            symbol: str,
+            data: pd.DataFrame) -> Optional[PatternResult]:
         if len(data) < self.min_separation_days * 2:
             return None
 
@@ -54,7 +57,8 @@ class DoubleBottomDetector(PatternDetector):
                 second_low_idx = min_indices[j]
 
                 separation = second_low_idx - first_low_idx
-                if not (self.min_separation_days <= separation <= self.max_separation_days):
+                if not (self.min_separation_days <=
+                        separation <= self.max_separation_days):
                     continue
 
                 first_low_val = lows.iloc[first_low_idx]
@@ -73,10 +77,11 @@ class DoubleBottomDetector(PatternDetector):
                     continue
 
                 middle_peak_val = interval_highs.max()
-                middle_peak_idx = interval_highs.idxmax()
+                interval_highs.idxmax()
 
                 # Calculate pattern depth
-                depth_pct = calculate_percentage_change(middle_peak_val, first_low_val)
+                depth_pct = calculate_percentage_change(
+                    middle_peak_val, first_low_val)
 
                 # Undercut check (second low slightly below first is bullish)
                 is_undercut = bool(second_low_val < first_low_val)
